@@ -17,7 +17,7 @@ import {
 } from './helper';
 
 /**
- *
+ * Create event handler for canvas elements
  * @param canvasElements
  * @param stepLength
  * @param coordinatesForGrid
@@ -146,7 +146,7 @@ export function handleCanvasEvents(
     mouseMoveStateHandler$,
     mouseDown$,
     mouseMove$,
-    mouseUp$,
     mouseDrag$,
+    mouseUp$,
   ).subscribe();
 }

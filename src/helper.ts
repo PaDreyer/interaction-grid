@@ -76,27 +76,33 @@ export function createGridPatternWithLines(
 ): GridArray {
   const coordinatesForGrid: GridArray = [];
 
+  // when drag down animate fall for vertical
+  const calculatedStartY = Math.abs(translate.y) - (Math.abs(translate.y) % stepLength);
+
   // draw vertical lines
   for (
-    let currentHeight = 0;
-    currentHeight <= height;
+    let currentHeight = -calculatedStartY;
+    currentHeight <= height + Math.abs(translate.y);
     currentHeight += stepLength
   ) {
     ctx.beginPath();
-    ctx.moveTo(0, currentHeight);
-    ctx.lineTo(width, currentHeight);
+    ctx.moveTo(-translate.x, currentHeight);
+    ctx.lineTo(width + Math.abs(translate.x), currentHeight);
     ctx.stroke();
   }
 
+  // when drag right animate fall for horizontal
+  const caluclatedStartX = Math.abs(translate.x) - (Math.abs(translate.x) % stepLength);
+
   // draw horizontal lines
   for (
-    let currentWidth = 0;
-    currentWidth <= width;
+    let currentWidth = -caluclatedStartX;
+    currentWidth <= width + Math.abs(translate.x);
     currentWidth += stepLength
   ) {
     ctx.beginPath();
-    ctx.moveTo(currentWidth, 0);
-    ctx.lineTo(currentWidth, height);
+    ctx.moveTo(currentWidth, 0 - translate.y);
+    ctx.lineTo(currentWidth, height + Math.abs(translate.y));
     ctx.stroke();
   }
 

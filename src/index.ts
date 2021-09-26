@@ -45,8 +45,12 @@ function createInteractiveDrawer(
   // register events for both layer
   handleCanvasEvents(canvasElements, stepLength, coordinatesForGrid, state);
 
+  return {
   // append layer to document
-  document.getElementsByClassName('container')[0]!.append(cElGrid, cElDraw);
+    $mount(id: string) {
+      document.getElementById(id)?.append(cElGrid, cElDraw);
+    }
+  }
 }
 
 
@@ -55,4 +59,6 @@ const interactiveDrawerOptions: InteractiveDrawerOptions = {
     debug: true
   }
 };
-createInteractiveDrawer(600, 600, 30, interactiveDrawerOptions);
+
+
+createInteractiveDrawer(600, 600, 20, interactiveDrawerOptions).$mount("container")
