@@ -26,7 +26,6 @@ function createInteractiveDrawer(
   cElDraw.width = width;
   cElDraw.height = height;
 
-
   const state = new State(options?.state ?? {});
 
   const canvasElements: CanvasElements = {
@@ -42,25 +41,31 @@ function createInteractiveDrawer(
     stepLength,
   );
 
-  state.logger.log(`Coordinates for grid: ${coordinatesForGrid.length} ${JSON.stringify(coordinatesForGrid, null, 2)}`);
+  state.logger.log(
+    `Coordinates for grid: ${coordinatesForGrid.length} ${JSON.stringify(
+      coordinatesForGrid,
+      null,
+      2,
+    )}`,
+  );
 
   // register events for both layer
   handleCanvasEvents(canvasElements, stepLength, coordinatesForGrid, state);
 
   return {
-  // append layer to document
+    // append layer to document
     $mount(id: string) {
       document.getElementById(id)?.append(cElGrid, cElDraw);
-    }
-  }
+    },
+  };
 }
-
 
 const interactiveDrawerOptions: InteractiveDrawerOptions = {
   state: {
-    debug: true
-  }
+    debug: true,
+  },
 };
 
-
-createInteractiveDrawer(600, 1000, 20, interactiveDrawerOptions).$mount("container")
+createInteractiveDrawer(200, 200, 20, interactiveDrawerOptions).$mount(
+  'container',
+);

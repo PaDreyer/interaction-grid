@@ -1,11 +1,17 @@
-import { BaseLogger, Coordinate, DragEvent, Events, Logger, MoveEvent, StateOptions } from './interaction.types';
+import {
+  BaseLogger,
+  Coordinate,
+  DragEvent,
+  Events,
+  MoveEvent,
+  StateOptions,
+} from './interaction.types';
 import { Subject } from 'rxjs';
 import { DefaultLogger } from './logger';
 
-
 const defaultStateOptions: StateOptions = {
   debug: false,
-}
+};
 
 /**
  * Saves interaction state
@@ -31,7 +37,7 @@ export class State {
   private _mouseUpCoord: Coordinate | undefined;
   // coordinates for mouse drag start
   private _mouseDragStartCoord: Coordinate | undefined;
-  // coordinates for mouse drag end 
+  // coordinates for mouse drag end
   private _mouseDragEndCoord: Coordinate | undefined;
   // drag distance for single event
   private _dragDistance: Coordinate | undefined;
@@ -45,9 +51,9 @@ export class State {
    * @param options StateOptions options to merge with default options
    */
   constructor(options?: StateOptions) {
-    if(options) this._options = { ...this._options, ...options };
+    if (options) this._options = { ...this._options, ...options };
     const logger = options?.logger;
-    if(logger) this._logger = new logger(this._options);
+    if (logger) this._logger = new logger(this._options);
     else this._logger = new DefaultLogger(this._options);
   }
 
@@ -157,7 +163,7 @@ export class State {
 
   /**
    * Handles events from elements
-   * Split some events granular and emit on rxjs observables 
+   * Split some events granular and emit on rxjs observables
    * @param event MouseEvent
    */
   public eventHandler(event: MouseEvent) {
@@ -197,7 +203,6 @@ export class State {
   private handleMouseMoveEvent(event: MouseEvent) {
     // Check if event is drag
     if (this.isClickDown) {
-
       // Set mouseDragStartCoord when it isnt set for current drag
       if (this.mouseDragStartCoord !== this.mouseDownCoord) {
         this.mouseDragStartCoord = this.mouseDownCoord;
@@ -217,10 +222,8 @@ export class State {
 
       // Current absolute translation
       this._currentTranslate = {
-        x:
-          this._currentTranslate!.x + this.dragDistance!.x,
-        y:
-          this._currentTranslate!.y + this.dragDistance!.y,
+        x: this._currentTranslate!.x + this.dragDistance!.x,
+        y: this._currentTranslate!.y + this.dragDistance!.y,
       };
 
       // DragEvent for rxjs pipe
@@ -236,12 +239,12 @@ export class State {
       this._isDragMove = true;
       this._isClickUp = true;
 
-    // is mouse move event
+      // is mouse move event
     } else {
       // update state
       this._isDragMove = false;
       this._isClickUp = true;
-      
+
       // MoveEvent for rxjs pipe
       const moveEvent: MoveEvent = {
         offsetX: event.offsetX,

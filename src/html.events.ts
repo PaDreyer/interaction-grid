@@ -2,11 +2,10 @@ import {
   CanvasElements,
   Coordinate,
   DragEvent,
-  Events,
   GridArray,
   MoveEvent,
 } from './interaction.types';
-import { filter, fromEvent, map, merge, pairwise, tap, partition } from 'rxjs';
+import { filter, fromEvent, map, merge, pairwise, tap } from 'rxjs';
 import { State } from './state-manager';
 import {
   createGridPatternWithLines,
@@ -21,6 +20,7 @@ import {
  * @param canvasElements
  * @param stepLength
  * @param coordinatesForGrid
+ * @param state State
  */
 export function handleCanvasEvents(
   canvasElements: CanvasElements,
@@ -38,15 +38,21 @@ export function handleCanvasEvents(
 
   // event pipe for mouse drag case
   const mouseDrag$ = state.onDrag$.pipe(
-    tap((event: DragEvent) => {
-      const ctx = drawElement.getContext('2d')!;
+    tap((_: DragEvent) => {
+      const ctx = drawElement.getContext('2d');
+
+      if (!ctx) throw new Error('Canvas Draw Element Context is not available');
+
       state.currentPointHint &&
         removePointHintFromContext(ctx, state.currentPointHint, stepLength);
       drawElement.style.cursor = 'grabbing';
     }),
     tap((event) => {
-      const ctxDraw = drawElement.getContext('2d')!;
-      const ctxGrid = gridElement.getContext('2d')!;
+      const ctxDraw = drawElement.getContext('2d');
+      if (!ctxDraw) throw new Error('Canvas Draw Context not available');
+
+      const ctxGrid = gridElement.getContext('2d');
+      if (!ctxGrid) throw new Error('Canvas Grid Context not available');
 
       // reset transform for translate to (0,0)
       ctxDraw.resetTransform();
@@ -59,18 +65,23 @@ export function handleCanvasEvents(
       // translate canvas for distance
       ctxDraw.translate(event.translate.x, event.translate.y);
       ctxGrid.translate(event.translate.x, event.translate.y);
-      
+
       // recreate grid pattern
       coordinatesForGrid = createGridPatternWithLines(
         ctxGrid,
         gridElement.height,
         gridElement.width,
         stepLength,
-        event.translate
+        event.translate,
       );
 
-      state.logger.log(`Coordinates for grid: ${JSON.stringify(coordinatesForGrid[0], null, 2)}`);
-      
+      state.logger.log(
+        `Coordinates for grid: ${JSON.stringify(
+          coordinatesForGrid[coordinatesForGrid.length - 1],
+          null,
+          2,
+        )}`,
+      );
     }),
   );
 
@@ -95,7 +106,9 @@ export function handleCanvasEvents(
     ),
     pairwise(),
     tap((events: Array<undefined | Coordinate>) => {
-      const ctx = drawElement.getContext('2d')!;
+      const ctx = drawElement.getContext('2d');
+      if (!ctx) throw new Error('Canvas Draw Context not available');
+
       events[0] && removePointHintFromContext(ctx, events[0], stepLength);
       ctx.fillStyle = 'blue';
 
@@ -119,7 +132,7 @@ export function handleCanvasEvents(
         { x: event.offsetX, y: event.offsetY },
         coordinatesForGrid,
         stepLength / 2,
-        { x: 0, y: 0 }
+        { x: 0, y: 0 },
       ),
     ),
     map((event: MouseEvent) =>
@@ -127,12 +140,14 @@ export function handleCanvasEvents(
         { x: event.offsetX, y: event.offsetY },
         coordinatesForGrid,
         stepLength / 2,
-        { x: 0, y: 0}
+        { x: 0, y: 0 },
       ),
     ),
     tap((event: any) => {
       if (event instanceof PointerEvent) {
-        const ctx = drawElement.getContext('2d')!;
+        const ctx = drawElement.getContext('2d');
+        if (!ctx) throw new Error('Canvas Draw Context not available');
+
         ctx.fillStyle = 'blue';
         ctx.fill(createPointHint(event.offsetX, event.offsetY, stepLength));
       }

@@ -12,18 +12,20 @@ export function isCoordinateInNearOfGrid(
   range: number,
   translate: Coordinate,
 ): boolean {
-  const absX = Math.abs(translate.x);
-  const absY = Math.abs(translate.y);
+  console.log('yeah');
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
     if (
-      grid[coordinate].y + range > (coord.y - absY) &&
-      grid[coordinate].y - range < (coord.y - absY) &&
-      grid[coordinate].x + range > (coord.x - absX) &&
-      grid[coordinate].x - range < (coord.x - absX)
+      grid[coordinate].y + range > coord.y - translate.y &&
+      grid[coordinate].y - range < coord.y - translate.y &&
+      grid[coordinate].x + range > coord.x - translate.x &&
+      grid[coordinate].x - range < coord.x - translate.x
     ) {
       return true;
     }
   }
+  console.log('last grid entry: ', grid[grid.length - 1]);
+
+  console.log('false');
   return false;
 }
 
@@ -39,15 +41,14 @@ export function getNearestCoordinateToGrid(
   range: number,
   translate: Coordinate,
 ): Coordinate | undefined {
-  const absX = Math.abs(translate.x);
-  const absY = Math.abs(translate.y);
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
     if (
-      grid[coordinate].y + range > (coord.y - absY) &&
-      grid[coordinate].y - range < (coord.y - absY) &&
-      grid[coordinate].x + range > (coord.x - absX) &&
-      grid[coordinate].x - range < (coord.x - absX)
+      grid[coordinate].y + range > coord.y - translate.y &&
+      grid[coordinate].y - range < coord.y - translate.y &&
+      grid[coordinate].x + range > coord.x - translate.x &&
+      grid[coordinate].x - range < coord.x - translate.x
     ) {
+      console.log('grid: ', grid[coordinate]);
       return grid[coordinate];
     }
   }
@@ -78,12 +79,13 @@ export function createGridPatternWithLines(
   height: number,
   width: number,
   stepLength: number,
-  translate = { x: 0, y: 0}
+  translate = { x: 0, y: 0 },
 ): GridArray {
   const coordinatesForGrid: GridArray = [];
 
   // when drag down animate fall for vertical
-  const calculatedStartY = Math.abs(translate.y) - (Math.abs(translate.y) % stepLength);
+  const calculatedStartY =
+    Math.abs(translate.y) - (Math.abs(translate.y) % stepLength);
 
   // draw vertical lines
   for (
@@ -98,11 +100,12 @@ export function createGridPatternWithLines(
   }
 
   // when drag right animate fall for horizontal
-  const caluclatedStartX = Math.abs(translate.x) - (Math.abs(translate.x) % stepLength);
+  const calculatedStartX =
+    Math.abs(translate.x) - (Math.abs(translate.x) % stepLength);
 
   // draw horizontal lines
   for (
-    let currentWidth = -caluclatedStartX;
+    let currentWidth = -calculatedStartX;
     currentWidth <= width + Math.abs(translate.x);
     currentWidth += stepLength
   ) {
@@ -114,26 +117,34 @@ export function createGridPatternWithLines(
 
   const absX = Math.abs(translate.x);
   const absY = Math.abs(translate.y);
-  const longestSide = (width + absX) > (height + absY) ? width + absX : height + absY;
-  const shortestSide = (width + absX) > (height + absY) ? height + absY : width + absX;
+  const longestSide =
+    width + absX > height + absY ? width + absX : height + absY;
+  const shortestSide =
+    width + absX > height + absY ? height + absY : width + absX;
 
-  const longestCurrentPoint = (width + absX) > (height + absY) ? absX : absY;
-  const shortestCurrentPoint = (width + absX) > (height + absY) ? absY : absX;
+  const longestCurrentPoint = width + absX > height + absY ? absX : absY;
+  const shortestCurrentPoint = width + absX > height + absY ? absY : absX;
 
   // iterate trough longest side
   for (
-    let currentPoint = -(longestCurrentPoint - (longestCurrentPoint % stepLength));
+    let currentPoint = -(
+      longestCurrentPoint -
+      (longestCurrentPoint % stepLength)
+    );
     currentPoint <= longestSide;
     currentPoint += stepLength
   ) {
     // iterate through vertical line and collect all points
     for (
-      let currentCollectPoint = -(shortestCurrentPoint - (shortestCurrentPoint % stepLength));
+      let currentCollectPoint = -(
+        shortestCurrentPoint -
+        (shortestCurrentPoint % stepLength)
+      );
       currentCollectPoint <= shortestSide;
       currentCollectPoint += stepLength
     ) {
       coordinatesForGrid.push(
-        width > height
+        width + (absX - (absX % 2)) > height + (absY - (absY % 2))
           ? {
               x: currentPoint,
               y: currentCollectPoint,
