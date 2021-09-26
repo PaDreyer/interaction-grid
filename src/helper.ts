@@ -72,6 +72,7 @@ export function createGridPatternWithLines(
   height: number,
   width: number,
   stepLength: number,
+  translate = { x: 0, y: 0}
 ): GridArray {
   const coordinatesForGrid: GridArray = [];
 

@@ -16,8 +16,6 @@ import {
   removePointHintFromContext,
 } from './helper';
 
-const state = new State();
-
 /**
  *
  * @param canvasElements
@@ -28,6 +26,7 @@ export function handleCanvasEvents(
   canvasElements: CanvasElements,
   stepLength: number,
   coordinatesForGrid: GridArray,
+  state: State,
 ) {
   const { draw: drawElement, grid: gridElement } = canvasElements;
 
@@ -49,18 +48,27 @@ export function handleCanvasEvents(
       const ctxDraw = drawElement.getContext('2d')!;
       const ctxGrid = gridElement.getContext('2d')!;
 
+      // reset transform for translate to (0,0)
+      ctxDraw.resetTransform();
+      ctxGrid.resetTransform();
+
+      // clear old canvas for rerender
       ctxGrid.clearRect(0, 0, gridElement.width, gridElement.height);
       ctxDraw.clearRect(0, 0, drawElement.width, drawElement.height);
 
-      console.log('Event: ', JSON.stringify(event, null, 2));
+      // translate canvas for distance
       ctxDraw.translate(event.translate.x, event.translate.y);
       ctxGrid.translate(event.translate.x, event.translate.y);
+      
+      // recreate grid pattern
       createGridPatternWithLines(
         ctxGrid,
         gridElement.height,
         gridElement.width,
         stepLength,
+        event.translate
       );
+      
     }),
   );
 

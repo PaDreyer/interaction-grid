@@ -1,25 +1,63 @@
-import { Coordinate, DragEvent, Events, MoveEvent } from './interaction.types';
+import { BaseLogger, Coordinate, DragEvent, Events, Logger, MoveEvent, StateOptions } from './interaction.types';
 import { Subject } from 'rxjs';
+import { DefaultLogger } from './logger';
+
+
+const defaultStateOptions: StateOptions = {
+  debug: false,
+}
 
 /**
  * Saves interaction state
  */
 export class State {
+  private _options: StateOptions = defaultStateOptions;
+  private _logger: BaseLogger;
+  // public onDrag observable
   public onDrag$ = new Subject<DragEvent>();
+  // public onMove observable
   public onMove$ = new Subject<MoveEvent>();
+  // translation state for stacking
   private _currentTranslate: Coordinate = { x: 0, y: 0 };
+  // states for internal usage
   private _isClickDown = false;
   private _isClickUp = false;
   private _isDragMove = false;
+  // current coordinates for point hint (cursor hover)
   private _currentPointHint: Coordinate | undefined;
+  // coordinates for mouse down
   private _mouseDownCoord: Coordinate | undefined;
+  // coordinates for mouse up
   private _mouseUpCoord: Coordinate | undefined;
+  // coordinates for mouse drag start
   private _mouseDragStartCoord: Coordinate | undefined;
+  // coordinates for mouse drag end 
   private _mouseDragEndCoord: Coordinate | undefined;
+  // drag distance for single event
   private _dragDistance: Coordinate | undefined;
+  // coordinates from event before to calculate drag distance
   private _lastDragCoord: Coordinate | undefined;
+  // absolute drag distance from last event
   private _lastDragDistance: Coordinate | undefined;
-  private _eventDragDistance: Coordinate | undefined;
+
+  /**
+   * Construct state class
+   * @param options StateOptions options to merge with default options
+   */
+  constructor(options?: StateOptions) {
+    if(options) this._options = { ...this._options, ...options };
+    const logger = options?.logger;
+    if(logger) this._logger = new logger(this._options);
+    else this._logger = new DefaultLogger(this._options);
+  }
+
+  get options() {
+    return this._options;
+  }
+
+  set options(newOptions: StateOptions) {
+    this._options = newOptions;
+  }
 
   get isClickUp() {
     return this._isClickUp;
@@ -101,14 +139,6 @@ export class State {
     this._lastDragDistance = coord;
   }
 
-  get eventDragDistance() {
-    return this._eventDragDistance;
-  }
-
-  set eventDragDistance(coord: Coordinate | undefined) {
-    this._eventDragDistance = coord;
-  }
-
   get lastDragCoord() {
     return this._lastDragCoord;
   }
@@ -117,83 +147,132 @@ export class State {
     this._lastDragCoord = coord;
   }
 
+  /**
+   * Handles events from elements
+   * Split some events granular and emit on rxjs observables 
+   * @param event MouseEvent
+   */
   public eventHandler(event: MouseEvent) {
     switch (event.type) {
       case Events.MOUSE_DOWN:
-        console.log('Click down');
-        this.mouseDownCoord = { x: event.offsetX, y: event.offsetY };
-        this._isClickDown = true;
-        this._isClickUp = false;
+        this.handleMouseDownEvent(event);
         break;
       case Events.MOUSE_MOVE:
-        if (this._isClickDown) {
-          if (this.mouseDragStartCoord !== this.mouseDownCoord) {
-            this.mouseDragStartCoord = this.mouseDownCoord;
-          }
-
-          const lastDragPoint = this.lastDragCoord ?? this.mouseDragStartCoord;
-
-          this.dragDistance = {
-            x: event.offsetX - lastDragPoint!.x,
-            y: event.offsetY - lastDragPoint!.y,
-          };
-
-          this.lastDragCoord = { x: event.offsetX, y: event.offsetY };
-
-          console.log('translate_ ', this.mouseDragStartCoord);
-          // TODO
-          // decide direction if add or minus
-          this._currentTranslate = {
-            // x: this._currentTranslate.x + this.dragDistance!.x,
-            // y: this._currentTranslate.y + this.dragDistance!.y,
-            x:
-              event.offsetX -
-              this.mouseDragStartCoord!.x +
-              this._currentTranslate.x,
-            y:
-              event.offsetY -
-              this.mouseDragStartCoord!.y +
-              this._currentTranslate.y,
-          };
-
-          const dragEvent: DragEvent = {
-            distance: this.dragDistance,
-            translate: this._currentTranslate,
-          };
-
-          this.onDrag$.next(dragEvent);
-
-          this._isDragMove = true;
-          this._isClickUp = true;
-        } else {
-          this._isDragMove = false;
-          this._isClickUp = true;
-          const moveEvent: MoveEvent = {
-            offsetX: event.offsetX,
-            offsetY: event.offsetY,
-          };
-          this.onMove$.next(moveEvent);
-        }
+        this.handleMouseMoveEvent(event);
         break;
       case Events.MOUSE_UP:
-        console.log('Click up');
-
-        if (this._isDragMove) {
-          this.mouseDragEndCoord = { x: event.offsetX, y: event.offsetY };
-          this.lastDragDistance = {
-            x: event.offsetX - this.mouseDragStartCoord!.x,
-            y: event.offsetY - this.mouseDragStartCoord!.y,
-          };
-          this.lastDragCoord = { x: event.offsetX, y: event.offsetY };
-        }
-
-        this.mouseUpCoord = { x: event.offsetX, y: event.offsetY };
-        this._isClickDown = false;
-        this._isClickUp = true;
-        this._isDragMove = false;
+        this.handleMouseUpEvent(event);
         break;
       default:
-        console.log(`Event '${event.type}' not found`);
+        console.error(`Event '${event.type}' not found`);
     }
+  }
+
+  /**
+   * Handle mouse down event
+   * @param event MouseEvent
+   */
+  private handleMouseDownEvent(event: MouseEvent) {
+    this._logger.log(`Click down at x: ${event.offsetX} / y: ${event.offsetY}`);
+    // Save mouse down coord for later usage
+    this.mouseDownCoord = { x: event.offsetX, y: event.offsetY };
+
+    // update state
+    this._isClickDown = true;
+    this._isClickUp = false;
+  }
+
+  /**
+   * Handle mouse move event
+   * @param event MouseEvent
+   */
+  private handleMouseMoveEvent(event: MouseEvent) {
+    // Check if event is drag
+    if (this.isClickDown) {
+
+      // Set mouseDragStartCoord when it isnt set for current drag
+      if (this.mouseDragStartCoord !== this.mouseDownCoord) {
+        this.mouseDragStartCoord = this.mouseDownCoord;
+      }
+
+      // When lastDragCoord is undefined we are in the first step, so use initial mouseDragStartCoord (mouseDownCoord)
+      const lastDragPoint = this.lastDragCoord ?? this.mouseDragStartCoord;
+
+      // Calculate drag distance for current event
+      this.dragDistance = {
+        x: event.offsetX - lastDragPoint!.x,
+        y: event.offsetY - lastDragPoint!.y,
+      };
+
+      // Update lastDragCoord to current position
+      this.lastDragCoord = { x: event.offsetX, y: event.offsetY };
+
+      // Current absolute translation
+      this._currentTranslate = {
+        x:
+          this._currentTranslate!.x + this.dragDistance!.x,
+        y:
+          this._currentTranslate!.y + this.dragDistance!.y,
+      };
+
+      // DragEvent for rxjs pipe
+      const dragEvent: DragEvent = {
+        distance: this.dragDistance,
+        translate: this._currentTranslate,
+      };
+
+      // Call rxjs pipe with event
+      this.onDrag$.next(dragEvent);
+
+      // update state
+      this._isDragMove = true;
+      this._isClickUp = true;
+
+    // is mouse move event
+    } else {
+      // update state
+      this._isDragMove = false;
+      this._isClickUp = true;
+      
+      // MoveEvent for rxjs pipe
+      const moveEvent: MoveEvent = {
+        offsetX: event.offsetX,
+        offsetY: event.offsetY,
+      };
+
+      // Call rxjs pipe with event
+      this.onMove$.next(moveEvent);
+    }
+  }
+
+  /**
+   * Handle mouse up event
+   * @param event MouseEvent
+   */
+  private handleMouseUpEvent(event: MouseEvent) {
+    this._logger.log(`Click up at x: ${event.offsetX} / y: ${event.offsetY}`);
+
+    // If everything before was a drag event
+    if (this._isDragMove) {
+      // Save mouse drag end coord
+      this.mouseDragEndCoord = { x: event.offsetX, y: event.offsetY };
+
+      // Absolute last drag distance
+      this.lastDragDistance = {
+        x: event.offsetX - this.mouseDragStartCoord!.x,
+        y: event.offsetY - this.mouseDragStartCoord!.y,
+      };
+
+      // Reset buffer for drag event, so mouseDragStart is choosen the first time
+      this.lastDragCoord = undefined;
+    }
+
+    // Save mouse up coord
+    this.mouseUpCoord = { x: event.offsetX, y: event.offsetY };
+
+    // Update state
+    this._isClickDown = false;
+    this._isClickUp = true;
+    this._isDragMove = false;
   }
 }
