@@ -147,6 +147,14 @@ export class State {
     this._lastDragCoord = coord;
   }
 
+  get currentTranslate() {
+    return this._currentTranslate;
+  }
+
+  get logger() {
+    return this._logger;
+  }
+
   /**
    * Handles events from elements
    * Split some events granular and emit on rxjs observables 
@@ -238,6 +246,7 @@ export class State {
       const moveEvent: MoveEvent = {
         offsetX: event.offsetX,
         offsetY: event.offsetY,
+        translate: this._currentTranslate,
       };
 
       // Call rxjs pipe with event

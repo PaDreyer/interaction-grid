@@ -61,13 +61,15 @@ export function handleCanvasEvents(
       ctxGrid.translate(event.translate.x, event.translate.y);
       
       // recreate grid pattern
-      createGridPatternWithLines(
+      coordinatesForGrid = createGridPatternWithLines(
         ctxGrid,
         gridElement.height,
         gridElement.width,
         stepLength,
         event.translate
       );
+
+      state.logger.log(`Coordinates for grid: ${JSON.stringify(coordinatesForGrid[0], null, 2)}`);
       
     }),
   );
@@ -80,6 +82,7 @@ export function handleCanvasEvents(
           { x: event.offsetX, y: event.offsetY },
           coordinatesForGrid,
           stepLength / 2,
+          event.translate,
         ) && !state.isDragMove,
     ),
     map((event: MoveEvent) =>
@@ -87,6 +90,7 @@ export function handleCanvasEvents(
         { x: event.offsetX, y: event.offsetY },
         coordinatesForGrid,
         stepLength / 2,
+        event.translate,
       ),
     ),
     pairwise(),
@@ -115,6 +119,7 @@ export function handleCanvasEvents(
         { x: event.offsetX, y: event.offsetY },
         coordinatesForGrid,
         stepLength / 2,
+        { x: 0, y: 0 }
       ),
     ),
     map((event: MouseEvent) =>
@@ -122,6 +127,7 @@ export function handleCanvasEvents(
         { x: event.offsetX, y: event.offsetY },
         coordinatesForGrid,
         stepLength / 2,
+        { x: 0, y: 0}
       ),
     ),
     tap((event: any) => {

@@ -22,6 +22,7 @@ export type DragEvent = {
 export type MoveEvent = {
   offsetX: number;
   offsetY: number;
+  translate: Coordinate;
 };
 
 export type GridArray = Array<Coordinate>;

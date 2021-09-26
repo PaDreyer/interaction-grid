@@ -10,13 +10,16 @@ export function isCoordinateInNearOfGrid(
   coord: Coordinate,
   grid: GridArray,
   range: number,
+  translate: Coordinate,
 ): boolean {
+  const absX = Math.abs(translate.x);
+  const absY = Math.abs(translate.y);
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
     if (
-      grid[coordinate].y + range > coord.y &&
-      grid[coordinate].y - range < coord.y &&
-      grid[coordinate].x + range > coord.x &&
-      grid[coordinate].x - range < coord.x
+      grid[coordinate].y + range > (coord.y - absY) &&
+      grid[coordinate].y - range < (coord.y - absY) &&
+      grid[coordinate].x + range > (coord.x - absX) &&
+      grid[coordinate].x - range < (coord.x - absX)
     ) {
       return true;
     }
@@ -34,13 +37,16 @@ export function getNearestCoordinateToGrid(
   coord: Coordinate,
   grid: GridArray,
   range: number,
+  translate: Coordinate,
 ): Coordinate | undefined {
+  const absX = Math.abs(translate.x);
+  const absY = Math.abs(translate.y);
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
     if (
-      grid[coordinate].y + range > coord.y &&
-      grid[coordinate].y - range < coord.y &&
-      grid[coordinate].x + range > coord.x &&
-      grid[coordinate].x - range < coord.x
+      grid[coordinate].y + range > (coord.y - absY) &&
+      grid[coordinate].y - range < (coord.y - absY) &&
+      grid[coordinate].x + range > (coord.x - absX) &&
+      grid[coordinate].x - range < (coord.x - absX)
     ) {
       return grid[coordinate];
     }
@@ -106,17 +112,23 @@ export function createGridPatternWithLines(
     ctx.stroke();
   }
 
-  const longestSide = width > height ? width : height;
-  const shortestSide = width > height ? height : width;
+  const absX = Math.abs(translate.x);
+  const absY = Math.abs(translate.y);
+  const longestSide = (width + absX) > (height + absY) ? width + absX : height + absY;
+  const shortestSide = (width + absX) > (height + absY) ? height + absY : width + absX;
+
+  const longestCurrentPoint = (width + absX) > (height + absY) ? absX : absY;
+  const shortestCurrentPoint = (width + absX) > (height + absY) ? absY : absX;
+
   // iterate trough longest side
   for (
-    let currentPoint = 0;
+    let currentPoint = -(longestCurrentPoint - (longestCurrentPoint % stepLength));
     currentPoint <= longestSide;
     currentPoint += stepLength
   ) {
     // iterate through vertical line and collect all points
     for (
-      let currentCollectPoint = 0;
+      let currentCollectPoint = -(shortestCurrentPoint - (shortestCurrentPoint % stepLength));
       currentCollectPoint <= shortestSide;
       currentCollectPoint += stepLength
     ) {
