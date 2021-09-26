@@ -41,14 +41,6 @@ function createInteractiveDrawer(
     stepLength,
   );
 
-  state.logger.log(
-    `Coordinates for grid: ${coordinatesForGrid.length} ${JSON.stringify(
-      coordinatesForGrid,
-      null,
-      2,
-    )}`,
-  );
-
   // register events for both layer
   handleCanvasEvents(canvasElements, stepLength, coordinatesForGrid, state);
 

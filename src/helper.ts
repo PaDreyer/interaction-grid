@@ -12,7 +12,6 @@ export function isCoordinateInNearOfGrid(
   range: number,
   translate: Coordinate,
 ): boolean {
-  console.log('yeah');
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
     if (
       grid[coordinate].y + range > coord.y - translate.y &&
@@ -23,9 +22,6 @@ export function isCoordinateInNearOfGrid(
       return true;
     }
   }
-  console.log('last grid entry: ', grid[grid.length - 1]);
-
-  console.log('false');
   return false;
 }
 
@@ -48,7 +44,6 @@ export function getNearestCoordinateToGrid(
       grid[coordinate].x + range > coord.x - translate.x &&
       grid[coordinate].x - range < coord.x - translate.x
     ) {
-      console.log('grid: ', grid[coordinate]);
       return grid[coordinate];
     }
   }
