@@ -16,6 +16,12 @@ export enum Events {
 
 export type DragEvent = {
   distance: Coordinate;
+  translate: Coordinate;
+};
+
+export type MoveEvent = {
+  offsetX: number;
+  offsetY: number;
 };
 
 export type GridArray = Array<Coordinate>;

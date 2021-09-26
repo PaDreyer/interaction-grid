@@ -1,10 +1,13 @@
-import { Coordinate, DragEvent, Events } from './interaction.types';
+import { Coordinate, DragEvent, Events, MoveEvent } from './interaction.types';
 import { Subject } from 'rxjs';
 
 /**
  * Saves interaction state
  */
 export class State {
+  public onDrag$ = new Subject<DragEvent>();
+  public onMove$ = new Subject<MoveEvent>();
+  private _currentTranslate: Coordinate = { x: 0, y: 0 };
   private _isClickDown = false;
   private _isClickUp = false;
   private _isDragMove = false;
@@ -137,12 +140,39 @@ export class State {
 
           this.lastDragCoord = { x: event.offsetX, y: event.offsetY };
 
-          console.log('Drag distance: ', this.dragDistance);
+          console.log('translate_ ', this.mouseDragStartCoord);
+          // TODO
+          // decide direction if add or minus
+          this._currentTranslate = {
+            // x: this._currentTranslate.x + this.dragDistance!.x,
+            // y: this._currentTranslate.y + this.dragDistance!.y,
+            x:
+              event.offsetX -
+              this.mouseDragStartCoord!.x +
+              this._currentTranslate.x,
+            y:
+              event.offsetY -
+              this.mouseDragStartCoord!.y +
+              this._currentTranslate.y,
+          };
+
+          const dragEvent: DragEvent = {
+            distance: this.dragDistance,
+            translate: this._currentTranslate,
+          };
+
+          this.onDrag$.next(dragEvent);
+
           this._isDragMove = true;
           this._isClickUp = true;
         } else {
           this._isDragMove = false;
           this._isClickUp = true;
+          const moveEvent: MoveEvent = {
+            offsetX: event.offsetX,
+            offsetY: event.offsetY,
+          };
+          this.onMove$.next(moveEvent);
         }
         break;
       case Events.MOUSE_UP:
@@ -154,6 +184,7 @@ export class State {
             x: event.offsetX - this.mouseDragStartCoord!.x,
             y: event.offsetY - this.mouseDragStartCoord!.y,
           };
+          this.lastDragCoord = { x: event.offsetX, y: event.offsetY };
         }
 
         this.mouseUpCoord = { x: event.offsetX, y: event.offsetY };

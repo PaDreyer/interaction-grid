@@ -1,12 +1,15 @@
 import {
   CanvasElements,
   Coordinate,
+  DragEvent,
   Events,
   GridArray,
+  MoveEvent,
 } from './interaction.types';
 import { filter, fromEvent, map, merge, pairwise, tap, partition } from 'rxjs';
 import { State } from './state-manager';
 import {
+  createGridPatternWithLines,
   createPointHint,
   getNearestCoordinateToGrid,
   isCoordinateInNearOfGrid,
@@ -28,38 +31,50 @@ export function handleCanvasEvents(
 ) {
   const { draw: drawElement, grid: gridElement } = canvasElements;
 
-  // decide between move and drag case
-  const [drag$, move$] = partition(
-    fromEvent<MouseEvent>(drawElement, 'mousemove').pipe(
-      tap((event: MouseEvent) => state.eventHandler(event)),
-    ),
-    () => state.isDragMove,
-  );
+  // handle event pipeline for state handler (mousemove)
+  const mouseMoveStateHandler$ = fromEvent<MouseEvent>(
+    drawElement,
+    'mousemove',
+  ).pipe(tap((event: MouseEvent) => state.eventHandler(event)));
 
   // event pipe for mouse drag case
-  const mouseDrag$ = drag$.pipe(
-    tap((event: MouseEvent) => {
+  const mouseDrag$ = state.onDrag$.pipe(
+    tap((event: DragEvent) => {
       const ctx = drawElement.getContext('2d')!;
       state.currentPointHint &&
         removePointHintFromContext(ctx, state.currentPointHint, stepLength);
       drawElement.style.cursor = 'grabbing';
     }),
     tap((event) => {
-      console.log('Distance: ', state.dragDistance);
+      const ctxDraw = drawElement.getContext('2d')!;
+      const ctxGrid = gridElement.getContext('2d')!;
+
+      ctxGrid.clearRect(0, 0, gridElement.width, gridElement.height);
+      ctxDraw.clearRect(0, 0, drawElement.width, drawElement.height);
+
+      console.log('Event: ', JSON.stringify(event, null, 2));
+      ctxDraw.translate(event.translate.x, event.translate.y);
+      ctxGrid.translate(event.translate.x, event.translate.y);
+      createGridPatternWithLines(
+        ctxGrid,
+        gridElement.height,
+        gridElement.width,
+        stepLength,
+      );
     }),
   );
 
   // event pipe for mouse move case
-  const mouseMove$ = move$.pipe(
+  const mouseMove$ = state.onMove$.pipe(
     filter(
-      (event: MouseEvent) =>
+      (event: MoveEvent) =>
         isCoordinateInNearOfGrid(
           { x: event.offsetX, y: event.offsetY },
           coordinatesForGrid,
           stepLength / 2,
         ) && !state.isDragMove,
     ),
-    map((event: MouseEvent) =>
+    map((event: MoveEvent) =>
       getNearestCoordinateToGrid(
         { x: event.offsetX, y: event.offsetY },
         coordinatesForGrid,
@@ -119,5 +134,11 @@ export function handleCanvasEvents(
   );
 
   // register all events
-  merge(mouseDown$, mouseMove$, mouseUp$, mouseDrag$).subscribe();
+  merge(
+    mouseMoveStateHandler$,
+    mouseDown$,
+    mouseMove$,
+    mouseUp$,
+    mouseDrag$,
+  ).subscribe();
 }
