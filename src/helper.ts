@@ -112,55 +112,30 @@ export function createGridPatternWithLines(
     ctx.stroke();
   }
 
-  // TODO
-  // Need to optimize
-  const longestSide =
-    width + absX > height + absY ? width + absX : height + absY;
-  const shortestSide =
-    width + absX > height + absY ? height + absY : width + absX;
+  const currentYStart = -translate.y + (translate.y % stepLength);
+  const currentYMax = -translate.y + height;
+  const currentXStart = -translate.x + (translate.x % stepLength);
+  const currentXMax = -translate.x + width;
 
-  const longestCurrentPoint = width + absX > height + absY ? absX : absY;
-  const shortestCurrentPoint = width + absX > height + absY ? absY : absX;
-
-  // iterate trough longest side
+  // iterate trough Y
   for (
-    let currentPoint = -(
-      longestCurrentPoint -
-      (longestCurrentPoint % stepLength)
-    );
-    currentPoint <= longestSide;
+    let currentPoint = currentYStart;
+    currentPoint <= currentYMax;
     currentPoint += stepLength
   ) {
-    // iterate through vertical line and collect all points
+    // iterate through X
     for (
-      let currentCollectPoint = -(
-        shortestCurrentPoint -
-        (shortestCurrentPoint % stepLength)
-      );
-      currentCollectPoint <= shortestSide;
+      let currentCollectPoint = currentXStart;
+      currentCollectPoint <= currentXMax;
       currentCollectPoint += stepLength
     ) {
-      coordinatesForGrid.push(
-        width + (absX - (absX % 2)) > height + (absY - (absY % 2))
-          ? {
-              x: currentPoint,
-              y: currentCollectPoint,
-            }
-          : {
-              x: currentCollectPoint,
-              y: currentPoint,
-            },
-      );
+      coordinatesForGrid.push({
+        x: currentCollectPoint,
+        y: currentPoint,
+      });
     }
   }
-  console.log(
-    'First coordinate: ',
-    JSON.stringify(coordinatesForGrid[0], null, 2),
-  );
-  console.log(
-    'Last coordinate: ',
-    JSON.stringify(coordinatesForGrid[coordinatesForGrid.length - 1], null, 2),
-  );
+
   return coordinatesForGrid;
 }
 
