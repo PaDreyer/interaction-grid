@@ -58,6 +58,6 @@ const interactiveDrawerOptions: InteractiveDrawerOptions = {
   },
 };
 
-createInteractiveDrawer(500, 300, 50, interactiveDrawerOptions).$mount(
+createInteractiveDrawer(1000, 1000, 50, interactiveDrawerOptions).$mount(
   'container',
 );

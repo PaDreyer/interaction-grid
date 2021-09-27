@@ -77,41 +77,39 @@ export function createGridPatternWithLines(
   translate = { x: 0, y: 0 },
 ): GridArray {
   const coordinatesForGrid: GridArray = [];
+  const absX = Math.abs(translate.x);
+  const absY = Math.abs(translate.y);
 
   // when drag down animate fall for vertical
-  const calculatedStartY =
-    Math.abs(translate.y) - (Math.abs(translate.y) % stepLength);
+  const calculatedStartY = translate.y - (translate.y % stepLength);
 
   // draw vertical lines
   for (
     let currentHeight = -calculatedStartY;
-    currentHeight <= height + Math.abs(translate.y);
+    currentHeight <= height - translate.y;
     currentHeight += stepLength
   ) {
     ctx.beginPath();
     ctx.moveTo(-translate.x, currentHeight);
-    ctx.lineTo(width + Math.abs(translate.x), currentHeight);
+    ctx.lineTo(width + absX, currentHeight);
     ctx.stroke();
   }
 
   // when drag right animate fall for horizontal
-  const calculatedStartX =
-    Math.abs(translate.x) - (Math.abs(translate.x) % stepLength);
+  const calculatedStartX = translate.x - (translate.x % stepLength);
 
   // draw horizontal lines
   for (
     let currentWidth = -calculatedStartX;
-    currentWidth <= width + Math.abs(translate.x);
+    currentWidth <= width - translate.x;
     currentWidth += stepLength
   ) {
     ctx.beginPath();
-    ctx.moveTo(currentWidth, 0 - translate.y);
-    ctx.lineTo(currentWidth, height + Math.abs(translate.y));
+    ctx.moveTo(currentWidth, -translate.y);
+    ctx.lineTo(currentWidth, height + absY);
     ctx.stroke();
   }
 
-  const absX = Math.abs(translate.x);
-  const absY = Math.abs(translate.y);
   const longestSide =
     width + absX > height + absY ? width + absX : height + absY;
   const shortestSide =
