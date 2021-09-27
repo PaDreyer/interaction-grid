@@ -82,11 +82,12 @@ export function createGridPatternWithLines(
 
   // when drag down animate fall for vertical
   const calculatedStartY = translate.y - (translate.y % stepLength);
+  const calculatedMaxHeight = height - translate.y;
 
   // draw vertical lines
   for (
     let currentHeight = -calculatedStartY;
-    currentHeight <= height - translate.y;
+    currentHeight <= calculatedMaxHeight;
     currentHeight += stepLength
   ) {
     ctx.beginPath();
@@ -97,11 +98,12 @@ export function createGridPatternWithLines(
 
   // when drag right animate fall for horizontal
   const calculatedStartX = translate.x - (translate.x % stepLength);
+  const calculatedMaxWidth = width - translate.x;
 
   // draw horizontal lines
   for (
     let currentWidth = -calculatedStartX;
-    currentWidth <= width - translate.x;
+    currentWidth <= calculatedMaxWidth;
     currentWidth += stepLength
   ) {
     ctx.beginPath();
@@ -110,6 +112,8 @@ export function createGridPatternWithLines(
     ctx.stroke();
   }
 
+  // TODO
+  // Need to optimize
   const longestSide =
     width + absX > height + absY ? width + absX : height + absY;
   const shortestSide =
@@ -149,7 +153,14 @@ export function createGridPatternWithLines(
       );
     }
   }
-
+  console.log(
+    'First coordinate: ',
+    JSON.stringify(coordinatesForGrid[0], null, 2),
+  );
+  console.log(
+    'Last coordinate: ',
+    JSON.stringify(coordinatesForGrid[coordinatesForGrid.length - 1], null, 2),
+  );
   return coordinatesForGrid;
 }
 
