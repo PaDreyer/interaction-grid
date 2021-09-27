@@ -6,7 +6,7 @@ import {
   MoveEvent,
 } from './interaction.types';
 import { filter, fromEvent, map, merge, pairwise, tap } from 'rxjs';
-import { State } from './state-manager';
+import { State } from './state.manager';
 import {
   createGridPatternWithLines,
   createPointHint,

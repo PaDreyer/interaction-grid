@@ -1,7 +1,7 @@
 import { CanvasElements, InteractiveDrawerOptions } from './interaction.types';
 import { handleCanvasEvents } from './html.events';
 import { createGridPatternWithLines } from './helper';
-import { State } from './state-manager';
+import { State } from './state.manager';
 
 /**
  * Entry function for canvas
@@ -58,6 +58,6 @@ const interactiveDrawerOptions: InteractiveDrawerOptions = {
   },
 };
 
-createInteractiveDrawer(200, 200, 20, interactiveDrawerOptions).$mount(
+createInteractiveDrawer(500, 300, 50, interactiveDrawerOptions).$mount(
   'container',
 );
