@@ -1,7 +1,8 @@
 import { CanvasElements, InteractiveDrawerOptions } from './interaction.types';
 import { handleCanvasEvents } from './html.events';
 import { createGridPatternWithLines } from './helper';
-import { State } from './state.manager';
+import { StateManager } from './state.manager';
+import { ObjectManager } from './object.manager';
 
 /**
  * Entry function for canvas
@@ -26,14 +27,14 @@ function createInteractiveDrawer(
   cElDraw.width = width;
   cElDraw.height = height;
 
-  const state = new State(options?.state ?? {});
+  const stateManager = new StateManager(options?.state ?? {});
+  const objectManager = new ObjectManager(options?.objectManager ?? {});
 
   const canvasElements: CanvasElements = {
     grid: cElGrid,
     draw: cElDraw,
   };
 
-  // initialize grid for canvas grid layer
   const coordinatesForGrid = createGridPatternWithLines(
     ctxGrid,
     cElGrid.height,
@@ -41,11 +42,15 @@ function createInteractiveDrawer(
     stepLength,
   );
 
-  // register events for both layer
-  handleCanvasEvents(canvasElements, stepLength, coordinatesForGrid, state);
+  handleCanvasEvents(
+    canvasElements,
+    stepLength,
+    coordinatesForGrid,
+    stateManager,
+    objectManager,
+  );
 
   return {
-    // append layer to document
     $mount(id: string) {
       document.getElementById(id)?.append(cElGrid, cElDraw);
     },
@@ -56,8 +61,11 @@ const interactiveDrawerOptions: InteractiveDrawerOptions = {
   state: {
     debug: true,
   },
+  objectManager: {
+    debug: true,
+  },
 };
 
-createInteractiveDrawer(1000, 1000, 50, interactiveDrawerOptions).$mount(
+createInteractiveDrawer(200, 200, 50, interactiveDrawerOptions).$mount(
   'container',
 );

@@ -16,34 +16,23 @@ const defaultStateOptions: StateOptions = {
 /**
  * Saves interaction state
  */
-export class State {
+export class StateManager {
   private _options: StateOptions = defaultStateOptions;
-  private _logger: BaseLogger;
-  // public onDrag observable
+  private readonly _logger: BaseLogger;
   public onDrag$ = new Subject<DragEvent>();
-  // public onMove observable
   public onMove$ = new Subject<MoveEvent>();
-  // translation state for stacking
   private _currentTranslate: Coordinate = { x: 0, y: 0 };
-  // states for internal usage
   private _isClickDown = false;
   private _isClickUp = false;
   private _isDragMove = false;
-  // current coordinates for point hint (cursor hover)
+  private _wasDrag = false;
   private _currentPointHint: Coordinate | undefined;
-  // coordinates for mouse down
   private _mouseDownCoord: Coordinate | undefined;
-  // coordinates for mouse up
   private _mouseUpCoord: Coordinate | undefined;
-  // coordinates for mouse drag start
   private _mouseDragStartCoord: Coordinate | undefined;
-  // coordinates for mouse drag end
   private _mouseDragEndCoord: Coordinate | undefined;
-  // drag distance for single event
   private _dragDistance: Coordinate | undefined;
-  // coordinates from event before to calculate drag distance
   private _lastDragCoord: Coordinate | undefined;
-  // absolute drag distance from last event
   private _lastDragDistance: Coordinate | undefined;
 
   /**
@@ -87,6 +76,10 @@ export class State {
 
   set isDragMove(is: boolean) {
     this._isDragMove = is;
+  }
+
+  get wasDrag() {
+    return this._wasDrag;
   }
 
   get currentPointHint() {
@@ -264,8 +257,14 @@ export class State {
   private handleMouseUpEvent(event: MouseEvent) {
     this._logger.log(`Click up at x: ${event.offsetX} / y: ${event.offsetY}`);
 
+    // set wasDrag for tracking (default)
+    this._wasDrag = false;
+
     // If everything before was a drag event
     if (this._isDragMove) {
+      // set wasDrag for tracking
+      this._wasDrag = true;
+
       // Save mouse drag end coord
       this.mouseDragEndCoord = { x: event.offsetX, y: event.offsetY };
 

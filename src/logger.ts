@@ -1,7 +1,7 @@
-import { BaseLogger, Logger, StateOptions } from "./interaction.types";
+import { BaseLogger, Logger, StateOptions } from './interaction.types';
 
 export class DefaultLogger extends BaseLogger {
-    constructor(options: StateOptions) {
-        super(options);
-    }
+  constructor(options: StateOptions) {
+    super(options);
+  }
 }

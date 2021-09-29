@@ -1,19 +1,37 @@
 import {
   CanvasElements,
+  CanvasObjectTypes,
   Coordinate,
   DragEvent,
   GridArray,
   MoveEvent,
 } from './interaction.types';
-import { filter, fromEvent, map, merge, pairwise, tap } from 'rxjs';
-import { State } from './state.manager';
+import {
+  debounceTime,
+  empty,
+  filter,
+  fromEvent,
+  map,
+  merge,
+  pairwise,
+  skip,
+  skipUntil,
+  take,
+  tap,
+  throttle,
+  throttleTime,
+  timer,
+} from 'rxjs';
+import { StateManager } from './state.manager';
 import {
   createGridPatternWithLines,
   createPointHint,
   getNearestCoordinateToGrid,
   isCoordinateInNearOfGrid,
   removePointHintFromContext,
+  renderObjects,
 } from './helper';
+import { ObjectManager } from './object.manager';
 
 /**
  * Create event handler for canvas elements
@@ -26,7 +44,8 @@ export function handleCanvasEvents(
   canvasElements: CanvasElements,
   stepLength: number,
   coordinatesForGrid: GridArray,
-  state: State,
+  stateManager: StateManager,
+  objectManager: ObjectManager,
 ) {
   const { draw: drawElement, grid: gridElement } = canvasElements;
 
@@ -34,17 +53,23 @@ export function handleCanvasEvents(
   const mouseMoveStateHandler$ = fromEvent<MouseEvent>(
     drawElement,
     'mousemove',
-  ).pipe(tap((event: MouseEvent) => state.eventHandler(event)));
+  ).pipe(tap((event: MouseEvent) => stateManager.eventHandler(event)));
 
   // event pipe for mouse drag case
-  const mouseDrag$ = state.onDrag$.pipe(
+  const mouseDrag$ = stateManager.onDrag$.pipe(
     tap((_: DragEvent) => {
       const ctx = drawElement.getContext('2d');
 
       if (!ctx) throw new Error('Canvas Draw Element Context is not available');
 
-      state.currentPointHint &&
-        removePointHintFromContext(ctx, state.currentPointHint, stepLength);
+      stateManager.currentPointHint &&
+        removePointHintFromContext(
+          ctx,
+          objectManager,
+          stateManager,
+          stateManager.currentPointHint,
+          stepLength,
+        );
       drawElement.style.cursor = 'grabbing';
     }),
     tap((event) => {
@@ -75,8 +100,10 @@ export function handleCanvasEvents(
         event.translate,
       );
 
-      state.logger.log(
-        `Coordinates for grid: ${JSON.stringify(
+      renderObjects(drawElement, objectManager, stateManager);
+
+      stateManager.logger.log(
+        `Last coordinates for grid: ${JSON.stringify(
           coordinatesForGrid[coordinatesForGrid.length - 1],
           null,
           2,
@@ -86,7 +113,8 @@ export function handleCanvasEvents(
   );
 
   // event pipe for mouse move case
-  const mouseMove$ = state.onMove$.pipe(
+  const mouseMove$ = stateManager.onMove$.pipe(
+    throttleTime(100),
     filter(
       (event: MoveEvent) =>
         isCoordinateInNearOfGrid(
@@ -94,7 +122,7 @@ export function handleCanvasEvents(
           coordinatesForGrid,
           stepLength / 2,
           event.translate,
-        ) && !state.isDragMove,
+        ) && !stateManager.isDragMove,
     ),
     map((event: MoveEvent) =>
       getNearestCoordinateToGrid(
@@ -109,16 +137,25 @@ export function handleCanvasEvents(
       const ctx = drawElement.getContext('2d');
       if (!ctx) throw new Error('Canvas Draw Context not available');
 
-      events[0] && removePointHintFromContext(ctx, events[0], stepLength);
+      console.log('removed');
+      events[0] &&
+        removePointHintFromContext(
+          ctx,
+          objectManager,
+          stateManager,
+          events[0],
+          stepLength,
+        );
+
       ctx.fillStyle = 'blue';
 
-      if (events[1]) {
+      if (events[0] && events[1]) {
         const newPointHint = createPointHint(
           events[1].x,
           events[1].y,
           stepLength,
         );
-        state.currentPointHint = events[1];
+        stateManager.currentPointHint = events[1];
         ctx.fill(newPointHint);
       }
     }),
@@ -126,7 +163,8 @@ export function handleCanvasEvents(
 
   // event pipe for mouse down case
   const mouseDown$ = fromEvent<MouseEvent>(drawElement, 'mousedown').pipe(
-    tap((event: MouseEvent) => state.eventHandler(event)),
+    tap((event: MouseEvent) => stateManager.eventHandler(event)),
+    /*
     filter((event: MouseEvent) =>
       isCoordinateInNearOfGrid(
         { x: event.offsetX, y: event.offsetY },
@@ -143,22 +181,26 @@ export function handleCanvasEvents(
         { x: 0, y: 0 },
       ),
     ),
-    tap((event: any) => {
-      if (event instanceof PointerEvent) {
-        const ctx = drawElement.getContext('2d');
-        if (!ctx) throw new Error('Canvas Draw Context not available');
-
-        ctx.fillStyle = 'blue';
-        ctx.fill(createPointHint(event.offsetX, event.offsetY, stepLength));
-      }
-    }),
+     */
   );
 
   // event pipe for mouse up case
   const mouseUp$ = fromEvent<MouseEvent>(drawElement, 'mouseup').pipe(
-    tap((event: MouseEvent) => state.eventHandler(event)),
+    tap((event: MouseEvent) => stateManager.eventHandler(event)),
     tap(() => {
       drawElement.style.cursor = 'default';
+    }),
+    filter(() => !stateManager.wasDrag),
+    tap(() => {
+      const currentPoint = stateManager.currentPointHint;
+      if (!currentPoint) throw new Error('Could not get current coordinates');
+      objectManager.addObject({
+        canvas: createPointHint(currentPoint.x, currentPoint.y, stepLength),
+        coord: currentPoint,
+      });
+    }),
+    tap(() => {
+      renderObjects(drawElement, objectManager, stateManager);
     }),
   );
 

@@ -1,4 +1,6 @@
-import { Coordinate, GridArray } from './interaction.types';
+import { CanvasElements, Coordinate, GridArray } from './interaction.types';
+import { ObjectManager } from './object.manager';
+import { StateManager } from './state.manager';
 
 /**
  * Check which coordinate is the nearest to a grid point
@@ -139,11 +141,28 @@ export function createGridPatternWithLines(
   return coordinatesForGrid;
 }
 
+/**
+ *
+ * @param ctx
+ * @param objectManager
+ * @param stateManager
+ * @param coord
+ * @param stepLength
+ */
 export function removePointHintFromContext(
   ctx: CanvasRenderingContext2D,
+  objectManager: ObjectManager,
+  stateManager: StateManager,
   coord: Coordinate,
   stepLength: number,
 ) {
+  if (
+    objectManager.objects.some((object) => {
+      return object.coord == coord;
+    })
+  )
+    return;
+
   ctx.beginPath();
   ctx.clearRect(
     coord.x - stepLength / 3 - 1,
@@ -151,5 +170,22 @@ export function removePointHintFromContext(
     (stepLength / 3) * 2 + 2,
     (stepLength / 3) * 2 + 2,
   );
+  ctx.closePath();
+}
+
+export function renderObjects(
+  el: HTMLCanvasElement,
+  objectManager: ObjectManager,
+  stateManager: StateManager,
+) {
+  const ctx = el.getContext('2d');
+  if (!ctx)
+    throw new Error('Could not get context of canvas element at renderer');
+
+  ctx.beginPath();
+  objectManager.objects.forEach((object) => {
+    ctx.fill(object.canvas);
+    ctx.stroke();
+  });
   ctx.closePath();
 }

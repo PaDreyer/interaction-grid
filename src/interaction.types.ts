@@ -30,7 +30,12 @@ export type GridArray = Array<Coordinate>;
 export type StateOptions = {
   debug?: boolean;
   logger?: Logger;
-}
+};
+
+export type ObjectManagerOptions = {
+  debug?: boolean;
+  logger?: Logger;
+};
 
 export interface Logger {
   new (options: StateOptions): BaseLogger;
@@ -39,12 +44,12 @@ export interface Logger {
 export abstract class BaseLogger {
   private _options: StateOptions;
 
-  constructor(stateOptions: StateOptions) {
-      this._options = stateOptions;
+  protected constructor(stateOptions: StateOptions) {
+    this._options = stateOptions;
   }
 
   public log(msg: string) {
-    if(this._options.debug) console.log(msg);
+    if (this._options.debug) console.log(msg);
   }
 
   public error(error: Error) {
@@ -52,6 +57,17 @@ export abstract class BaseLogger {
   }
 }
 
+export enum CanvasObjectTypes {
+  ARC = 'arc',
+}
+
+export type CanvasObject = {
+  id?: string;
+  canvas: Path2D;
+  coord: Coordinate;
+};
+
 export type InteractiveDrawerOptions = {
   state?: StateOptions;
-}
+  objectManager?: ObjectManagerOptions;
+};
