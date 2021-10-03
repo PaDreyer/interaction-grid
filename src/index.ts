@@ -3,6 +3,7 @@ import { handleCanvasEvents } from './html.events';
 import { createGridPatternWithLines } from './helper';
 import { StateManager } from './state.manager';
 import { ObjectManager } from './object.manager';
+import { MenuManager } from './menu.manager';
 
 /**
  * Entry function for canvas
@@ -27,8 +28,9 @@ function createInteractiveDrawer(
   cElDraw.width = width;
   cElDraw.height = height;
 
-  const stateManager = new StateManager(options?.state ?? {});
+  const stateManager = new StateManager(options?.stateManager ?? {});
   const objectManager = new ObjectManager(options?.objectManager ?? {});
+  const menuManager = new MenuManager(options?.menuManager ?? {});
 
   const canvasElements: CanvasElements = {
     grid: cElGrid,
@@ -58,14 +60,17 @@ function createInteractiveDrawer(
 }
 
 const interactiveDrawerOptions: InteractiveDrawerOptions = {
-  state: {
+  stateManager: {
     debug: true,
   },
   objectManager: {
     debug: true,
   },
+  menuManager: {
+    debug: true,
+  },
 };
 
-createInteractiveDrawer(200, 200, 50, interactiveDrawerOptions).$mount(
+createInteractiveDrawer(500, 500, 50, interactiveDrawerOptions).$mount(
   'container',
 );

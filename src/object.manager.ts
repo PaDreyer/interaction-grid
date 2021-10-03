@@ -1,6 +1,7 @@
 import {
   BaseLogger,
   CanvasObject,
+  Coordinate,
   ObjectManagerOptions,
   StateOptions,
 } from './interaction.types';
@@ -22,6 +23,28 @@ export class ObjectManager {
     const logger = options?.logger;
     if (logger) this._logger = new logger(this._options);
     else this._logger = new DefaultLogger(this._options);
+  }
+
+  /**
+   * TODO implement
+   * @param point
+   */
+  public findObjectOutlinePoint(point: Coordinate) {
+    for (const obj of this._objects) {
+    }
+  }
+
+  /**
+   * TODO implement
+   * @param point
+   */
+  public findObjectOnPoint(point: Coordinate) {
+    for (const obj of this._objects) {
+    }
+  }
+
+  public findObject(id: string) {
+    return this._objects.filter((obj) => obj.id === id)[0];
   }
 
   public addObject(object: CanvasObject) {

@@ -17,10 +17,17 @@ const defaultStateOptions: StateOptions = {
  * Saves interaction state
  */
 export class StateManager {
+  // basic configuration
   private _options: StateOptions = defaultStateOptions;
   private readonly _logger: BaseLogger;
-  public onDrag$ = new Subject<DragEvent>();
-  public onMove$ = new Subject<MoveEvent>();
+
+  // invoked mouse events
+  public onMouseDrag$ = new Subject<DragEvent>();
+  public onMouseMove$ = new Subject<MoveEvent>();
+  public onMouseDown$ = new Subject<MouseEvent>();
+  public onMouseUp$ = new Subject<MouseEvent>();
+
+  // state management
   private _currentTranslate: Coordinate = { x: 0, y: 0 };
   private _isClickDown = false;
   private _isClickUp = false;
@@ -187,6 +194,8 @@ export class StateManager {
     // update state
     this._isClickDown = true;
     this._isClickUp = false;
+
+    this.onMouseDown$.next(event);
   }
 
   /**
@@ -225,12 +234,12 @@ export class StateManager {
         translate: this._currentTranslate,
       };
 
-      // Call rxjs pipe with event
-      this.onDrag$.next(dragEvent);
-
       // update state
       this._isDragMove = true;
       this._isClickUp = true;
+
+      // Call rxjs pipe with event
+      this.onMouseDrag$.next(dragEvent);
 
       // is mouse move event
     } else {
@@ -246,7 +255,7 @@ export class StateManager {
       };
 
       // Call rxjs pipe with event
-      this.onMove$.next(moveEvent);
+      this.onMouseMove$.next(moveEvent);
     }
   }
 
@@ -285,5 +294,7 @@ export class StateManager {
     this._isClickDown = false;
     this._isClickUp = true;
     this._isDragMove = false;
+
+    this.onMouseUp$.next(event);
   }
 }

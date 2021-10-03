@@ -37,6 +37,11 @@ export type ObjectManagerOptions = {
   logger?: Logger;
 };
 
+export type MenuManagerOptions = {
+  debug?: boolean;
+  logger?: Logger;
+};
+
 export interface Logger {
   new (options: StateOptions): BaseLogger;
 }
@@ -65,9 +70,11 @@ export type CanvasObject = {
   id?: string;
   canvas: Path2D;
   coord: Coordinate;
+  color?: string;
 };
 
 export type InteractiveDrawerOptions = {
-  state?: StateOptions;
+  stateManager?: StateOptions;
   objectManager?: ObjectManagerOptions;
+  menuManager?: MenuManagerOptions;
 };

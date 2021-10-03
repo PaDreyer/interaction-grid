@@ -1,4 +1,4 @@
-import { CanvasElements, Coordinate, GridArray } from './interaction.types';
+import { Coordinate, GridArray } from './interaction.types';
 import { ObjectManager } from './object.manager';
 import { StateManager } from './state.manager';
 
@@ -15,12 +15,7 @@ export function isCoordinateInNearOfGrid(
   translate: Coordinate,
 ): boolean {
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
-    if (
-      grid[coordinate].y + range > coord.y - translate.y &&
-      grid[coordinate].y - range < coord.y - translate.y &&
-      grid[coordinate].x + range > coord.x - translate.x &&
-      grid[coordinate].x - range < coord.x - translate.x
-    ) {
+    if (pointIsInRange(coord, grid[coordinate], range, translate)) {
       return true;
     }
   }
@@ -40,16 +35,32 @@ export function getNearestCoordinateToGrid(
   translate: Coordinate,
 ): Coordinate | undefined {
   for (let coordinate = 0; coordinate < grid.length; coordinate++) {
-    if (
-      grid[coordinate].y + range > coord.y - translate.y &&
-      grid[coordinate].y - range < coord.y - translate.y &&
-      grid[coordinate].x + range > coord.x - translate.x &&
-      grid[coordinate].x - range < coord.x - translate.x
-    ) {
+    if (pointIsInRange(coord, grid[coordinate], range, translate)) {
       return grid[coordinate];
     }
   }
   return;
+}
+
+/**
+ * Check if a point is in a given range from coordinate
+ * @param point
+ * @param coord
+ * @param range
+ * @param translate
+ */
+export function pointIsInRange(
+  point: Coordinate,
+  coord: Coordinate,
+  range: number,
+  translate: Coordinate,
+) {
+  return (
+    coord.y + range > point.y - translate.y &&
+    coord.y - range < point.y - translate.y &&
+    coord.x + range > point.x - translate.x &&
+    coord.x - range < point.x - translate.x
+  );
 }
 
 /**
@@ -60,7 +71,7 @@ export function getNearestCoordinateToGrid(
  */
 export function createPointHint(x: number, y: number, stepLength: number) {
   const PointHint = new Path2D();
-  PointHint.arc(x, y, stepLength / 4, 0, 360);
+  PointHint.arc(x, y, stepLength / 5, 0, 360);
   return PointHint;
 }
 
@@ -70,6 +81,7 @@ export function createPointHint(x: number, y: number, stepLength: number) {
  * @param height
  * @param width
  * @param stepLength
+ * @param translate
  */
 export function createGridPatternWithLines(
   ctx: CanvasRenderingContext2D,
@@ -158,7 +170,7 @@ export function removePointHintFromContext(
 ) {
   if (
     objectManager.objects.some((object) => {
-      return object.coord == coord;
+      return object.coord.x === coord.x && object.coord.y === coord.y;
     })
   )
     return;
@@ -173,6 +185,12 @@ export function removePointHintFromContext(
   ctx.closePath();
 }
 
+/**
+ * Render objects on HTMLCanvasElement
+ * @param el
+ * @param objectManager
+ * @param stateManager
+ */
 export function renderObjects(
   el: HTMLCanvasElement,
   objectManager: ObjectManager,
@@ -184,8 +202,41 @@ export function renderObjects(
 
   ctx.beginPath();
   objectManager.objects.forEach((object) => {
+    ctx.fillStyle = object.color ?? 'black';
     ctx.fill(object.canvas);
     ctx.stroke();
   });
   ctx.closePath();
+}
+
+/**
+ * Translate multiple layer to given offset
+ * @param multipleLayer
+ * @param coord
+ */
+export function translateMultipleLayer(
+  multipleLayer: Array<HTMLCanvasElement>,
+  offset: Coordinate,
+) {
+  for (const layer of multipleLayer) {
+    const ctx = getContext<CanvasRenderingContext2D>(layer);
+
+    ctx.resetTransform();
+    ctx.clearRect(0, 0, layer.width, layer.height);
+    ctx.translate(offset.x, offset.y);
+  }
+}
+
+/**
+ * Try to get context
+ * @param el
+ * @param type
+ */
+export function getContext<T extends RenderingContext>(
+  el: HTMLCanvasElement,
+  type = '2d',
+): T {
+  const ctx = el.getContext(type);
+  if (!ctx) throw new Error(`Canvas context for ${el} not available.`);
+  return ctx as unknown as T;
 }
