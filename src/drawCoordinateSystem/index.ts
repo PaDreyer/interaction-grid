@@ -49,6 +49,10 @@ export class DrawCoordinateSystem extends CanvasSystem<DrawCoordinateSystemOptio
     return this;
   }
 
+  public export() {}
+
+  public import() {}
+
   /**
    * Handle events for elements
    */

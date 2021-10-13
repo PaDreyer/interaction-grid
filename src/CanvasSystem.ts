@@ -1,3 +1,4 @@
+import { AnonymousSubject } from 'rxjs/internal/Subject';
 import { CanvasifyOptions } from './interaction.types';
 import { MenuManager } from './manager/menu.manager';
 import { ObjectManager } from './manager/object.manager';
@@ -34,6 +35,12 @@ export abstract class CanvasSystem<T> {
   }
 
   abstract draw(): void;
+
+  // TODO implement feature
+  abstract export(): any;
+
+  // TODO implement feature
+  abstract import(): any;
 
   $mount(elId: string) {
     const el = document.getElementById(elId);
