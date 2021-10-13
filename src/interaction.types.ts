@@ -6,6 +6,7 @@ export type Coordinate = {
 export type CanvasElements = {
   grid: HTMLCanvasElement;
   draw: HTMLCanvasElement;
+  hover: HTMLCanvasElement;
 };
 
 export enum Events {

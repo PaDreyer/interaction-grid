@@ -168,12 +168,16 @@ export function removePointHintFromContext(
   coord: Coordinate,
   stepLength: number,
 ) {
+  /*
+  // TODO why ?
+  // Not needed anymore since another layer was integrated (hover)
   if (
     objectManager.objects.some((object) => {
       return object.coord.x === coord.x && object.coord.y === coord.y;
     })
   )
     return;
+    */
 
   ctx.beginPath();
   ctx.clearRect(
@@ -204,7 +208,6 @@ export function renderObjects(
   objectManager.objects.forEach((object) => {
     ctx.fillStyle = object.color ?? 'black';
     ctx.fill(object.canvas);
-    ctx.stroke();
   });
   ctx.closePath();
 }

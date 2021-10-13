@@ -27,7 +27,7 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            title: "Interactive Grid",
+            title: "Canvasify",
             template: "./public/index.html",
         })
     ]

@@ -42,24 +42,24 @@ export function handleCanvasEvents(
   stateManager: StateManager,
   objectManager: ObjectManager,
 ) {
-  const { draw: drawElement, grid: gridElement } = canvasElements;
+  const { draw: drawElement, grid: gridElement, hover: hoverElement } = canvasElements;
 
   /*---------------------------------------------------------------------------------------------*/
   /*                    handle event pipelines for state handler                                 */
   const mouseMoveStateHandler$ = fromEvent<MouseEvent>(
-    drawElement,
+    hoverElement,
     'mousemove',
   ).pipe(tap((event: MouseEvent) => stateManager.eventHandler(event)));
 
   // handle event pipeline for state handler (mouseup)
   const mouseUpStateHandler$ = fromEvent<MouseEvent>(
-    drawElement,
+    hoverElement,
     'mouseup',
   ).pipe(tap((event: MouseEvent) => stateManager.eventHandler(event)));
 
   // handle event pipeline for state handler (mousedown)
   const mouseDownStateHandler$ = fromEvent<MouseEvent>(
-    drawElement,
+    hoverElement,
     'mousedown',
   ).pipe(tap((event: MouseEvent) => stateManager.eventHandler(event)));
 
@@ -69,7 +69,7 @@ export function handleCanvasEvents(
   // event pipe for mouse drag case
   const mouseDrag$ = stateManager.onMouseDrag$.pipe(
     tap((_: DragEvent) => {
-      const ctx = getContext<CanvasRenderingContext2D>(drawElement);
+      const ctx = getContext<CanvasRenderingContext2D>(hoverElement);
 
       stateManager.currentPointHint &&
         removePointHintFromContext(
@@ -79,13 +79,13 @@ export function handleCanvasEvents(
           stateManager.currentPointHint,
           stepLength,
         );
-      drawElement.style.cursor = 'grabbing';
+      hoverElement.style.cursor = 'grabbing';
     }),
     tap((event) => {
       const ctxDraw = getContext<CanvasRenderingContext2D>(drawElement);
       const ctxGrid = getContext<CanvasRenderingContext2D>(gridElement);
 
-      translateMultipleLayer([drawElement, gridElement], event.translate);
+      translateMultipleLayer([drawElement, gridElement, hoverElement], event.translate);
 
       // recreate grid pattern
       coordinatesForGrid = createGridPatternWithLines(
@@ -105,7 +105,7 @@ export function handleCanvasEvents(
   /*---------------------------------------------------------------------------------------------*/
   // event pipe for mouse move case
   const mouseMove$ = stateManager.onMouseMove$.pipe(
-    //throttleTime(100),
+    // throttleTime(50),
     filter(
       (event: MoveEvent) =>
         isCoordinateInNearOfGrid(
@@ -125,22 +125,19 @@ export function handleCanvasEvents(
     ),
     pairwise(),
     tap((events: Array<undefined | Coordinate>) => {
-      const ctx = getContext<CanvasRenderingContext2D>(drawElement);
-
-      if (!stateManager.currentPointHint)
-        stateManager.currentPointHint = events[0];
-
-      console.log('removed');
-      events[0] &&
+      const ctx = getContext<CanvasRenderingContext2D>(hoverElement);
+    
+      if(events[0]) {
+        // update statemanager currentPointHint if undefined
+        if (!stateManager.currentPointHint) stateManager.currentPointHint = events[0];
         removePointHintFromContext(
           ctx,
           objectManager,
           stateManager,
-          stateManager.currentPointHint!,
+          stateManager.currentPointHint,
           stepLength,
         );
-
-      ctx.fillStyle = 'black';
+      }
 
       if (events[0] && events[1]) {
         const newPointHint = createPointHint(
@@ -148,6 +145,7 @@ export function handleCanvasEvents(
           events[1].y,
           stepLength,
         );
+        ctx.fillStyle = 'black';
         stateManager.currentPointHint = events[1];
         ctx.fill(newPointHint);
       }
@@ -186,7 +184,7 @@ export function handleCanvasEvents(
   // event pipe for mouse up case
   const mouseUp$ = stateManager.onMouseUp$.pipe(
     tap(() => {
-      drawElement.style.cursor = 'default';
+      hoverElement.style.cursor = 'default';
     }),
     filter(() => !stateManager.wasDrag),
     tap(() => {

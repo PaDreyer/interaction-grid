@@ -28,6 +28,13 @@ function createInteractiveDrawer(
   cElDraw.width = width;
   cElDraw.height = height;
 
+  // create canvas hover layer 
+  const cElHover = document.createElement('canvas');
+  const ctxHover = cElHover.getContext("2d")!;
+  cElHover.style.position = 'absolute';
+  cElHover.width = width;
+  cElHover.height = height;
+
   const stateManager = new StateManager(options?.stateManager ?? {});
   const objectManager = new ObjectManager(options?.objectManager ?? {});
   const menuManager = new MenuManager(options?.menuManager ?? {});
@@ -35,6 +42,7 @@ function createInteractiveDrawer(
   const canvasElements: CanvasElements = {
     grid: cElGrid,
     draw: cElDraw,
+    hover: cElHover,
   };
 
   const coordinatesForGrid = createGridPatternWithLines(
@@ -54,7 +62,7 @@ function createInteractiveDrawer(
 
   return {
     $mount(id: string) {
-      document.getElementById(id)?.append(cElGrid, cElDraw);
+      document.getElementById(id)?.append(cElGrid, cElDraw, cElHover);
     },
   };
 }
