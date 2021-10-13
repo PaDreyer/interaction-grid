@@ -5,9 +5,9 @@ import {
   Events,
   MoveEvent,
   StateOptions,
-} from './interaction.types';
+} from './../interaction.types';
 import { Subject } from 'rxjs';
-import { DefaultLogger } from './logger';
+import { DefaultLogger } from './../logger';
 
 const defaultStateOptions: StateOptions = {
   debug: false,
@@ -26,6 +26,7 @@ export class StateManager {
   public onMouseMove$ = new Subject<MoveEvent>();
   public onMouseDown$ = new Subject<MouseEvent>();
   public onMouseUp$ = new Subject<MouseEvent>();
+  public onMouseLeave$ = new Subject<MouseEvent>();
 
   // state management
   private _currentTranslate: Coordinate = { x: 0, y: 0 };
@@ -177,9 +178,20 @@ export class StateManager {
       case Events.MOUSE_UP:
         this.handleMouseUpEvent(event);
         break;
+      case Events.MOUSE_LEAVE:
+        this.handleMouseLeaveEvent(event);
+        break;
       default:
         console.error(`Event '${event.type}' not found`);
     }
+  }
+
+  /**
+   * Handle mouse leave event
+   * @param event MouseEvent
+   */
+  private handleMouseLeaveEvent(event: MouseEvent) {
+    this.onMouseLeave$.next(event);
   }
 
   /**

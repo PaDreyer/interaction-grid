@@ -13,6 +13,7 @@ export enum Events {
   MOUSE_MOVE = 'mousemove',
   MOUSE_DOWN = 'mousedown',
   MOUSE_UP = 'mouseup',
+  MOUSE_LEAVE = 'mouseleave',
 }
 
 export type DragEvent = {
@@ -74,7 +75,11 @@ export type CanvasObject = {
   color?: string;
 };
 
-export type InteractiveDrawerOptions = {
+export type DrawCoordinateSystemOptions = {
+  stepLength: number;
+};
+
+export type CanvasifyOptions = {
   stateManager?: StateOptions;
   objectManager?: ObjectManagerOptions;
   menuManager?: MenuManagerOptions;

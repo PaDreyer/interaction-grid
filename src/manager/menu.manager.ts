@@ -1,10 +1,5 @@
-import {
-  BaseLogger,
-  CanvasObject,
-  MenuManagerOptions,
-  ObjectManagerOptions,
-} from './interaction.types';
-import { DefaultLogger } from './logger';
+import { BaseLogger, MenuManagerOptions } from '../interaction.types';
+import { DefaultLogger } from '../logger';
 
 const defaultMenuManagerOptions: MenuManagerOptions = {};
 

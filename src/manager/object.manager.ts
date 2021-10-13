@@ -3,9 +3,8 @@ import {
   CanvasObject,
   Coordinate,
   ObjectManagerOptions,
-  StateOptions,
-} from './interaction.types';
-import { DefaultLogger } from './logger';
+} from './../interaction.types';
+import { DefaultLogger } from './../logger';
 import { nanoid } from 'nanoid';
 
 const defaultObjectManagerOptions: ObjectManagerOptions = {
