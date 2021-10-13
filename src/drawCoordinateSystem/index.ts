@@ -1,5 +1,5 @@
 import { filter, fromEvent, map, merge, Observable, pairwise, tap } from 'rxjs';
-import { CanvasSystem } from '../CanvasSystem';
+import { CanvasSystem } from '../base/CanvasSystem';
 import { getContext } from '../helper';
 import type {
   CanvasifyOptions,

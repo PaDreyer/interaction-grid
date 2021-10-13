@@ -1,8 +1,8 @@
 import { AnonymousSubject } from 'rxjs/internal/Subject';
-import { CanvasifyOptions } from './interaction.types';
-import { MenuManager } from './manager/menu.manager';
-import { ObjectManager } from './manager/object.manager';
-import { StateManager } from './manager/state.manager';
+import { CanvasifyOptions } from '../interaction.types';
+import { MenuManager } from '../manager/menu.manager';
+import { ObjectManager } from '../manager/object.manager';
+import { StateManager } from '../manager/state.manager';
 
 export abstract class CanvasSystem<T> {
   protected readonly canvasOptions: CanvasifyOptions | undefined;
